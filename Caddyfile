@@ -1,0 +1,11 @@
+# Plain HTTP inside the server's Docker network; HTTPS is done by the main
+# Caddy in tpf-api.
+:80 {
+	encode gzip
+	root * /srv
+	# Keep the admin out of search engines.
+	header X-Robots-Tag "noindex, nofollow"
+	# Screens such as /usuarios are browser routes: they all load index.html.
+	try_files {path} /index.html
+	file_server
+}

@@ -1,0 +1,18 @@
+# The admin on the server, next to tpf-api (~/tpf-api and ~/tpf-admin). It joins
+# tpf-api's Docker network, where tpf-api's Caddy answers https://admin.DOMAIN.
+# DOMAIN comes from tpf-api's .env.server:
+#   docker compose --env-file ../tpf-api/.env.server -f docker-compose.server.yml up -d --build
+services:
+  admin:
+    build:
+      context: .
+      args:
+        VITE_API_URL: https://api.${DOMAIN:?}
+        VITE_APP_URL: https://${DOMAIN:?}
+    restart: unless-stopped
+    networks: [tpf]
+
+networks:
+  tpf:
+    name: tpf-api_default
+    external: true
