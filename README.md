@@ -7,6 +7,32 @@ Painel de administração do **Trampo Fácil**, separado do app. Feito com [Vue 
 
 Só entra quem é admin. A API confere isso em toda chamada.
 
+📘 **Visão geral do sistema** (os três repositórios, servidor, regras de negócio e pendências): [tpf-api/docs/ARQUITETURA.md](https://github.com/Ygor-Santts/tpf-api/blob/main/docs/ARQUITETURA.md)
+
+## 📂 Estrutura
+
+| Arquivo ou pasta | O que tem |
+| --- | --- |
+| `src/views` | As três telas: `SignIn` (entrar), `Categories` e `Users` |
+| `src/components` | Layout, avisos e a linha de categoria ou profissão com seus botões |
+| `src/services.ts` | Todas as chamadas à API (`/admin/...` e o login) |
+| `src/api.ts` | axios com o token; uma sessão vencida (401) ou sem acesso (403) volta para a tela de entrar |
+| `src/session.ts` | Login do admin, guardado separado do login do app |
+| `src/router.ts` | Rotas: `/entrar`, `/categorias`, `/usuarios` |
+
+O login do admin usa a mesma rota de login do app (`/auth/sign-in`), mas fica guardado em outras chaves do navegador, então entrar aqui não mexe na sessão do app.
+
+## 🧪 Qualidade
+
+`npm run build` confere os tipos com `vue-tsc` antes de compilar, e o GitHub Actions roda isso a cada mudança. Ainda não há testes automáticos.
+
+### Pendências conhecidas (revisão de 09/10/2026, nenhuma bloqueia o uso)
+
+- Mensagens de erro aparecem no topo da página, fora da tela no celular.
+- Respostas fora de ordem: os detalhes de uma conta podem aparecer no painel de outra, e "Carregar mais" pode repetir linhas.
+- Nome de conta muito longo quebra a página Usuários no celular.
+- Depois de um deploy, uma aba aberta pode não conseguir trocar de tela até recarregar.
+
 ---
 
 ## 🚀 Rodar no seu PC
