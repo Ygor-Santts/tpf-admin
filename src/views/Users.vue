@@ -30,19 +30,32 @@ const detail = ref<AdminUserDetail | null>(null)
 const busy = ref(false)
 
 
+// Each search, filter change or "Carregar mais" gets a number, and only the
+// latest one may write to the list: an older answer that arrives late is
+// dropped instead of mixing another search's results in.
+let listRequest = 0
 async function load(more = false) {
+  const request = ++listRequest
   loading.value = true
   try {
     const next = more ? page.value + 1 : 1
     const result = await getUsers({ search: search.value.trim() || undefined, filter: filter.value, page: next })
-    users.value = more ? [...users.value, ...result.data] : result.data
+    if (request !== listRequest) return
+    if (more) {
+      // A row can shift to the next page when accounts change in between.
+      const seen = new Set(users.value.map((u) => u.id))
+      users.value = [...users.value, ...result.data.filter((u) => !seen.has(u.id))]
+    } else {
+      users.value = result.data
+    }
     total.value = result.total
     pages.value = result.pages
     page.value = next
   } catch (e) {
+    if (request !== listRequest) return
     notice.value = { ok: false, text: apiError(e, 'Não foi possível carregar os usuários.') }
   } finally {
-    loading.value = false
+    if (request === listRequest) loading.value = false
   }
 }
 
@@ -61,8 +74,11 @@ async function toggleOpen(user: AdminUser) {
   openId.value = user.id
   detail.value = null
   try {
-    detail.value = await getUser(user.id)
+    const result = await getUser(user.id)
+    // Another account was opened (or this one closed) while it loaded.
+    if (openId.value === user.id) detail.value = result
   } catch (e) {
+    if (openId.value !== user.id) return
     notice.value = { ok: false, text: apiError(e, 'Não foi possível abrir a conta.') }
   }
 }
